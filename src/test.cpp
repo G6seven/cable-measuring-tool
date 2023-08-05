@@ -54,7 +54,6 @@ void loop(){
   rotaryEncoder();
   int rotaryButtonState = digitalRead(rotaryButton);
   if (rotaryButtonState == HIGH ){
-    
   }
 }
 
