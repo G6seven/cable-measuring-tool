@@ -11,7 +11,7 @@ AccelStepper stepper1(1, 0, 1);
   
 
 byte numDigits = 4;
-byte digitPins[] = {11, 12, 13, 10};
+byte digitPins[] = {10, 11, 12, 13};
 byte segmentPins[] = {9, 2, 3, 5, 6, 8, 7, 4};
 bool resistorsOnSegments = true;
 byte hardwareConfig = COMMON_CATHODE;
@@ -33,9 +33,10 @@ int rotaryEncoder () {
      } else {
        cableLength = cableLength - 5;
      }
+     Serial.println(cableLength);
    } 
    aLastState = currentState; // Updates the previous state of the outputA with the current state
- return cableLength/2;
+ return cableLength;
 }
 
 void setup() {
@@ -54,14 +55,11 @@ void setup() {
   
 void loop(){
   rotaryEncoder();
-  Serial.println(cableLength);
   sevseg.setNumber(cableLength, 1);
   sevseg.refreshDisplay();
-  int rotaryButtonState = digitalRead(rotaryButton);
-  if (rotaryButtonState == HIGH ){
+  if (analogRead(rotaryButton) == HIGH ){
     
 
     cableLength = 0;
   }
 }
-
