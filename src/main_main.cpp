@@ -6,8 +6,10 @@
 #define rotaryB A2
 #define rotaryButton A4
 
+
+
 SevSeg sevseg;
-AccelStepper stepper1(1, 0, 1);
+AccelStepper Xaxis(2, 0, 1); // pin 3 = step, pin 6 = direction
   
 
 byte numDigits = 4;
@@ -36,8 +38,10 @@ int rotaryEncoder () {
      Serial.println(cableLength);
    } 
    aLastState = currentState; // Updates the previous state of the outputA with the current state
- return cableLength;
+ return cableLength/2;
 }
+
+
 
 void setup() {
 
@@ -49,17 +53,23 @@ void setup() {
 
   unsigned long startTimer = millis();
 
-  stepper1.setMaxSpeed(100.0);
-  stepper1.setAcceleration(100.0);
+  Xaxis.setMaxSpeed(800);
 }
   
 void loop(){
+
   rotaryEncoder();
+
   sevseg.setNumber(cableLength, 1);
   sevseg.refreshDisplay();
-  if (analogRead(rotaryButton) == HIGH ){
-    
 
-    cableLength = 0;
+  if (analogRead(rotaryButton) == HIGH ){
+    stepperExecute(cableLength);
+    
   }
+}
+
+int stepperExecute (cableLength){
+  
+
 }

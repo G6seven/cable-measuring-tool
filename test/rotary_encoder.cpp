@@ -16,7 +16,6 @@
    // Reads the initial state of the outputA
     aLastState = analogRead(rotaryA);   
  } 
-
   void loop() { 
    aState = digitalRead(rotaryA); // Reads the "current" state of the outputA
    // If the previous and the current state of the outputA are different, that means a Pulse has occured
