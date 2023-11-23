@@ -33,7 +33,7 @@ int rotaryEncoder () {
    currentState = digitalRead(rotaryA); // Reads the "current" state of the outputA
    if (currentState != aLastState){     
      if (digitalRead(rotaryB) != currentState) { 
-       cableLength = cableLength + 5;
+       cableLength = cableLength + 5;  //+ and - 5 bcs the length of the cable is going to be selected by half a meter
      } else {
        cableLength = cableLength - 5;
      }
