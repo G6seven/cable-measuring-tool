@@ -2,15 +2,17 @@
 #include <AccelStepper.h>
 #include <Arduino.h>
 
-//defining the analog input pins
+//defining the rotary encoder input pins
 #define rotaryA A0
-#define rotaryB A2
-#define rotaryButton A4
+#define rotaryB A1
+#define rotaryButton A2
 
+//stepper driver pins
+#define stepPin A5
+#define dirPin A4
 
-//initializing libraries
 SevSeg sevseg;
-AccelStepper Xaxis(2, 0, 1); // pin 0 = step, pin 1 = direction
+AccelStepper stepper(1, stepPin, dirPin); 
   
 //sevseg required inputs
 byte numDigits = 4;
@@ -22,61 +24,77 @@ bool leadingZeros = false;
 bool disableDecPoint = false;
 
 
-//variables
+//public variables
 int cableLength = 0;
 int currentState;
 int aLastState;  
 int rotaryButtonState;
-
-//function that uses the rotary encoder ouput to modify the variable cableLength
-int rotaryEncoder () {
-   currentState = digitalRead(rotaryA); // Reads the "current" state of the outputA
-   if (currentState != aLastState){     
-     if (digitalRead(rotaryB) != currentState) { 
-       cableLength = cableLength + 5;  //+ and - 5 bcs the length of the cable is going to be selected by half a meter
-     } else {
+int i = 0;
+//function that uses the rotary encoder ouput to change the value of the variable cableLength
+int rotaryEncoder ()
+{
+  currentState = digitalRead(rotaryA); // Reads the "current" state of the outputA
+  if (currentState != aLastState)
+  {     
+    if (digitalRead(rotaryB) != currentState)
+    { 
+      cableLength = cableLength + 5;  //+ and - 5 bcs the length of the cable is going to be selected by half a meter
+    } 
+    else 
+    {
        cableLength = cableLength - 5;
-     }
-     Serial.println(cableLength); //debuggging purpose, 
-   } 
-   aLastState = currentState; // Updates the previous state of the outputA with the current state
- return cableLength/2;
+    }
+    Serial.println(cableLength); //debuggging purpose, 
+  } 
+  aLastState = currentState; // Updates the previous state of the outputA with the current state
+  return cableLength;
 }
 
-//function that moves the stepper and zeroes out the cableLength variable
+void stepperExecute()
+{
+  if (digitalRead(rotaryButton) == LOW && stepper.distanceToGo() == 0)
+  {
+    delay(100);
+    stepper.move(cableLength);
+    Serial.println("target position changed");
+      
+  }
+  while (stepper.distanceToGo() != 0)
+    {
+    /*
+    if(i == 0){
+      sevseg.setChars("jedu");
+      sevseg.refreshDisplay();
+      Serial.println("ugh");
+      i++;
+    }     */
+    Serial.println("stepper in move"); //debugging purpose
+    cableLength = 0;
+    stepper.run();
 
+  }
+  //i = 0;
+}
 
-
-void setup() {
-
+void sevsegInMove(){
+  uint8_t segs[4] = {0, 0x5B, 0x6D, 0x63};
+  sevseg.setSegments(segs);
+}
+void setup()
+{
   Serial.begin(9600); //debugging purpose
-
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
-  sevseg.setBrightness(90);
+  sevseg.setBrightness(20);
+  pinMode(rotaryButton, INPUT_PULLUP); // push button is an input pull up (High when not presses)
 
-
-  unsigned long startTimer = millis(); // was experiencing with sevseg display refreshing, figured out different way 
-
-  Xaxis.setMaxSpeed(800);
+  stepper.setMaxSpeed(500);
+  stepper.setAcceleration(200);
 }
   
-void loop(){
-
-
+void loop()
+{
   rotaryEncoder();
-
   sevseg.setNumber(cableLength, 1);
   sevseg.refreshDisplay();
-  // next goal is to make the stepper move the required amount of steps, that will require knowing the dimensions of the pulley
-  if (analogRead(rotaryButton) == HIGH ){
-    while (Xaxis.distanceToGo() == 0){
-      delay(100);
-      Xaxis.moveTo(cableLength);
-      Xaxis.setAcceleration(200);
-      Xaxis.setMaxSpeed(400);
-      Xaxis.run();
-    } 
-    Serial.println(cableLength); //debuggging purpose,
-    cableLength = 0; 
-  }
+  stepperExecute();  
 }
